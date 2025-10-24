@@ -1,0 +1,35 @@
+name: Deploy to Ubuntu Server
+
+on:
+  push:
+    branches:
+      - Main
+      
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          port: 22
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            nvm use 20
+
+            cd ~/INSPACE-WEB-2025
+            
+            git config --global url."https://${{ secrets.GIT_TOKEN }}@github.com/".insteadOf "https://github.com/"
+            git pull origin Main
+            
+            npm install -f
+            npm run build
+            pm2 reload 2
