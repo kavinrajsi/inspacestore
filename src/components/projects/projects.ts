@@ -9,11 +9,11 @@ export const projects: Record<string, Projects> = {
     category: ["Fashion"],
     location: "KK Nagar, Chennai",
     image: [
-      "/assets/projects/SaravanaStores/ss2.webp",
-      "/assets/projects/SaravanaStores/ss3.webp",
-      "/assets/projects/SaravanaStores/ss4.webp",
-      "/assets/projects/SaravanaStores/ss5.webp",
-      "/assets/projects/SaravanaStores/ss13.webp",
+      "/assets/projects/SaravanaStores/ss2.png",
+      "/assets/projects/SaravanaStores/ss3.png",
+      "/assets/projects/SaravanaStores/ss4.png",
+      "/assets/projects/SaravanaStores/ss5.png",
+      "/assets/projects/SaravanaStores/ss13.png",
     ],
     inspaceContent:
       "The modular display racks are designed for easy reconfiguration, allowing seamless adaptation to changing inventory and promotional needs. A strategically planned layout, combined with bright lighting, ensures a smooth shopping experience where customers  can quickly locate products. Additionally, the use of durable fixtures enhances the overall aesthetic while maintaining product quality, particularly in the  fresh produce zone, where premium materials help preserve shelf life.",
@@ -22,55 +22,55 @@ export const projects: Record<string, Projects> = {
       "The enhanced shopping experience is achieved through spacious aisles and clear signage, ensuring customer satisfaction by making navigation effortless. A cohesive brand aesthetic is maintained with a sleek, modern design that aligns with Saravana Stores' identity, creating a visually appealing retail environment. Additionally, the future-ready layout features modular racks that can easily adapt to new product lines and seasonal changes, ensuring long-term flexibility and efficiency.",
     scrollingImages: [
       {
-        src: "/assets/projects/SaravanaStores/ss7.webp",
+        src: "/assets/projects/SaravanaStores/ss7.png",
         className: "row-span-2 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss8.webp",
+        src: "/assets/projects/SaravanaStores/ss8.png",
         className: "row-span-1 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss9.webp",
+        src: "/assets/projects/SaravanaStores/ss9.png",
         className: "row-span-1 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss10.webp",
+        src: "/assets/projects/SaravanaStores/ss10.png",
         className: "row-span-2 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss11.webp",
+        src: "/assets/projects/SaravanaStores/ss11.png",
         className: "row-span-2 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss12.webp",
+        src: "/assets/projects/SaravanaStores/ss12.png",
         className: "row-span-1 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss13.webp",
+        src: "/assets/projects/SaravanaStores/ss13.png",
         className: "row-span-1 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss1.webp",
+        src: "/assets/projects/SaravanaStores/ss1.png",
         className: "row-span-1 col-span-1",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss2.webp",
+        src: "/assets/projects/SaravanaStores/ss2.png",
         className: "row-span-1 col-span-1",
       },
     ],
     forMoreImages: [
       {
-        src: "/assets/projects/SaravanaStores/ss2.webp",
+        src: "/assets/projects/SaravanaStores/ss2.png",
         category: "Men's Fashion",
         buttonText: "Talk to interior design export",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss10.webp",
+        src: "/assets/projects/SaravanaStores/ss10.png",
         category: "Women's Fashion",
         buttonText: "Talk to interior design export",
       },
       {
-        src: "/assets/projects/SaravanaStores/ss8.webp",
+        src: "/assets/projects/SaravanaStores/ss8.png",
         category: "Kids' Fashion",
         buttonText: "Talk to interior design export",
       },
