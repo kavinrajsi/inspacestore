@@ -19,7 +19,7 @@ This repository powers the official **Inspace Store website** and its internal U
 - **Framework:** [Next.js 14 (App Router)](https://nextjs.org/)
 - **Language:** TypeScript
 - **Styling:** CSS Modules / Global CSS
-- **Email API:** SMTP via `/api/sendEmail`
+- **Email API:** Resend via `/api/sendEmail`
 - **Hosting:** Vercel / Custom Node (manual deploy)
 - **Font Optimization:** [Geist Font (Vercel)](https://vercel.com/font)
 
@@ -47,7 +47,7 @@ src/
 │   │   └── page.tsx
 │   └── api/
 │       └── sendEmail/
-│           └── route.ts        # Email API (SMTP Integration)
+│           └── route.ts        # Email API (Resend integration)
 │
 ├── components/                 # Reusable UI components
 ├── hooks/                      # Custom React hooks (API, forms, etc.)
@@ -78,14 +78,10 @@ Create a .env.local file in your project root.
 NEXT_PUBLIC_SITE_URL=https://inspacestore.in
 NEXT_PUBLIC_ENV=production    # local | uat | production
 
-# ---------- SMTP CONFIG (for /api/sendEmail) ----------
-SMTP_HOST=smtp.yourprovider.com
-SMTP_PORT=587
-SMTP_SECURE=false             # true if port 465
-SMTP_USER=your_smtp_username
-SMTP_PASS=your_smtp_password
-SMTP_FROM="Inspace <no-reply@inspacestore.in>"
-SMTP_TO=hello@inspacestore.in
+# ---------- RESEND CONFIG (for /api/sendEmail) ----------
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL="Inspace <contact@mail.inspacestore.in>"
+RESEND_TO_EMAIL=hello@inspacestore.in
 
 # ---------- OPTIONAL ----------
 # NEXT_PUBLIC_GA_ID=G-XXXXXXX
@@ -110,44 +106,12 @@ Example Request Body
 Response
 
 { "ok": true }
-Example NodeMailer Handler (src/app/api/sendEmail/route.ts)
+Current Handler (src/app/api/sendEmail/route.ts)
 
-import nodemailer from "nodemailer";
-import { NextResponse } from "next/server";
-
-export async function POST(req: Request) {
-  const body = await req.json();
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
-      to: process.env.SMTP_TO,
-      subject: `[INSPACE] ${body.subject}`,
-      text: `
-        Name: ${body.name}
-        Email: ${body.email}
-        Phone: ${body.phone}
-        Message:
-        ${body.message}
-      `,
-    });
-
-    return NextResponse.json({ ok: true });
-  } catch (err: any) {
-    console.error("Email error:", err);
-    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
-  }
-}
+- Accepts the JSON payload shown above.
+- Logs the submission server-side for monitoring.
+- Sends the submission details through Resend using the API key (`RESEND_API_KEY`).
+- Responds with delivery metadata `{ delivery: "resend" | "logged" }` so callers know when Resend fails.
 🖥️ Pages Overview
 Page	Path	Description
 Home	/home	Landing page — hero, features, CTA
@@ -186,8 +150,4 @@ Production	https://inspacestore.in
 UAT	https://inspace.ysd.agency
 
 © 2025 INSPACE • Designed & Developed by YSD
-
-
-
-
 

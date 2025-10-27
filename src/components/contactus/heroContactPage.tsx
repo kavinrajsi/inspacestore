@@ -143,6 +143,8 @@ const HeroContactPage = () => {
     setLoading(true);
 
     const data = isMobile ? mobileFormData : formData;
+    const variant = isMobile ? "mobile" : "desktop";
+    console.log(`Submitting contact form (${variant}):`, data);
     if (!validateForm(data)) {
       setLoading(false);
       return;
@@ -156,15 +158,47 @@ const HeroContactPage = () => {
         },
         body: JSON.stringify(data),
       });
-      if (response.ok) {
-        setFormSubmitted(true);
-        setNotification({
-          type: "success",
-          message: "Form submitted successfully!",
+
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData: unknown = errorText;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          // keep raw text
+        }
+        console.error("Failed to send form:", {
+          status: response.status,
+          error: errorData,
         });
+        setNotification({
+          type: "error",
+          message: "Failed to submit form. Please try again.",
+        });
+        console.error(`Failed to deliver contact form (${variant}):`, {
+          status: response.status,
+          result,
+        });
+        return;
       }
+
+      setFormSubmitted(true);
+      console.log(`Contact form delivered (${variant}):`, {
+        payload: data,
+        delivery: result?.delivery ?? "unknown",
+      });
+      setNotification({
+        type: "success",
+        message: "Form submitted successfully!",
+      });
     } catch (error) {
       console.error("Error submitting form:", error);
+      setNotification({
+        type: "error",
+        message: "An error occurred. Please try again.",
+      });
     } finally {
       setLoading(false);
     }

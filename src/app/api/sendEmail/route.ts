@@ -1,147 +1,185 @@
-import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
-import * as XLSX from 'xlsx';
-import { appendToGoogleSheet } from '@/lib/googleSheet';
+import { NextResponse } from "next/server";
 
-interface ContactFormData {
+type FormType = "contact" | "footer" | "insight";
+
+type ContactFormData = {
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
   message: string;
   whatsappUpdates?: boolean;
-  formType: 'contact';
-}
+  formType: "contact";
+};
 
-interface FooterFormData {
+type FooterFormData = {
   name: string;
   phoneNumber: string;
-  formType: 'footer';
-}
+  formType: "footer";
+};
 
-interface InsightFormData {
+type InsightFormData = {
   name: string;
   email: string;
   phone: string;
   projectLocation: string;
   whatsappUpdates?: boolean;
-  formType: 'insight';
-}
+  formType: "insight";
+};
 
 type FormData = ContactFormData | FooterFormData | InsightFormData;
 
+const RESEND_API_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "addasdsd";
 
+const formatTitle = (formType: FormType) =>
+  `${formType.charAt(0).toUpperCase()}${formType.slice(1)} Form Submission`;
+
+const buildEmailPayload = (
+  subject: string,
+  fullName: string,
+  email: string,
+  phoneNumber: string,
+  message: string,
+  projectLocation: string
+) => {
+  const toAddress =
+    process.env.RESEND_TO_EMAIL ?? "inspacestores2012@gmail.com";
+  const fromAddress =
+    process.env.RESEND_FROM_EMAIL ?? "no-reply@inspacestore.in";
+
+  const rows = [
+    ["Name", fullName],
+    ["Email", email],
+    ["Phone Number", phoneNumber],
+    ["Message", message],
+    ["Project Location", projectLocation],
+    ["Submitted At", new Date().toLocaleString()],
+  ];
+
+  const html = `
+    <h2>${subject}</h2>
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+      ${rows
+        .map(
+          ([label, value]) => `
+        <tr>
+          <th align="left" style="background:#f5f5f5">${label}</th>
+          <td>${value}</td>
+        </tr>
+      `
+        )
+        .join("")}
+    </table>
+  `;
+
+  const text = rows.map(([label, value]) => `${label}: ${value}`).join("\n");
+
+  return {
+    from: fromAddress,
+    to: [toAddress],
+    subject,
+    html,
+    text,
+  };
+};
 
 export async function POST(request: Request) {
   try {
     const formData: FormData = await request.json();
 
-    // Get full name based on form type
-    let fullName = '';
-    let email = 'N/A';
-    let phoneNumber = 'N/A';
-    let message = 'N/A';
-    let projectLocation = 'N/A';
+    let fullName = "";
+    let email = "N/A";
+    let phoneNumber = "N/A";
+    let message = "N/A";
+    let projectLocation = "N/A";
 
-    // Extract data based on form type
     switch (formData.formType) {
-      case 'contact':
-        const contactData = formData as ContactFormData;
-        fullName = `${contactData.firstName} ${contactData.lastName}`.trim();
-        email = contactData.email;
-        phoneNumber = contactData.phoneNumber;
-        message = contactData.message;
+      case "contact":
+        fullName = `${formData.firstName} ${formData.lastName}`.trim();
+        email = formData.email;
+        phoneNumber = formData.phoneNumber;
+        message = formData.message;
         break;
-      case 'footer':
-        const footerData = formData as FooterFormData;
-        fullName = footerData.name;
-        phoneNumber = footerData.phoneNumber;
+      case "footer":
+        fullName = formData.name;
+        phoneNumber = formData.phoneNumber;
         break;
-      case 'insight':
-        const InsightData = formData as InsightFormData;
-        fullName = InsightData.name;
-        email = InsightData.email;
-        phoneNumber = InsightData.phone;
-        projectLocation = InsightData.projectLocation;
+      case "insight":
+        fullName = formData.name;
+        email = formData.email;
+        phoneNumber = formData.phone;
+        projectLocation = formData.projectLocation;
+        break;
+      default:
         break;
     }
 
-    // Create worksheet data
-    const wsData = [
-      ['Field', 'Value'],
-      ['Form Type', formData.formType],
-      ['Name', fullName],
-      ['Email', email],
-      ['Phone Number', phoneNumber],
-      ['Message', message],
-      ['Project Location', projectLocation],
-      ['Submission Date', new Date().toLocaleString()]
-    ];
-
-    const timestamp = new Date().toLocaleString();
-
-    // Store in Google Sheets
-    await appendToGoogleSheet([
-      timestamp,
-      formData.formType,
+    console.info("Form submission received:", {
+      formType: formData.formType,
       fullName,
       email,
       phoneNumber,
       message,
       projectLocation,
-    ]);
-
-    // Create Excel worksheet
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Form Submission');
-
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
-
-    // Configure email transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
     });
 
-    // Set up email options
-    const mailOptions = {
-      from: process.env.FROM_EMAIL,
-      to: process.env.TO_EMAIL,
-      subject: `${formData.formType.charAt(0).toUpperCase() + formData.formType.slice(1)} Form Submission`,
-      text: `
-        Form Type: ${formData.formType}
-        Name: ${fullName}
-        Email: ${email}
-        Phone Number: ${phoneNumber}
-        Message: ${message}
-        Project Location: ${projectLocation}
-      `,
-      html: `
-        <h2>${formData.formType.charAt(0).toUpperCase() + formData.formType.slice(1)} Form Submission</h2>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone Number:</strong> ${phoneNumber}</p>
-        <p><strong>Message:</strong> ${message}</p>
-        <p><strong>Project Location:</strong> ${projectLocation}</p>
-      `,
-      attachments: [
-        {
-          filename: `${formData.formType}_submission_${Date.now()}.xlsx`,
-          content: excelBuffer,
-        }
-      ]
-    };
+    let delivery: "resend" | "logged" = "resend";
+    let resendErrorDetails: unknown = null;
 
-    await transporter.sendMail(mailOptions);
-    return NextResponse.json({ message: 'Form submitted successfully' }, { status: 200 });
+    try {
+      const resendResponse = await fetch(RESEND_API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify(
+          buildEmailPayload(
+            formatTitle(formData.formType),
+            fullName,
+            email,
+            phoneNumber,
+            message,
+            projectLocation
+          )
+        ),
+      });
+
+      if (!resendResponse.ok) {
+        const errorText = await resendResponse.text();
+        resendErrorDetails = {
+          status: resendResponse.status,
+          error: errorText,
+        };
+        console.error("Resend API error:", resendErrorDetails);
+        delivery = "logged";
+      }
+    } catch (resendError) {
+      resendErrorDetails = {
+        message: "Exception while calling Resend",
+        error: resendError,
+      };
+      console.error("Error sending email via Resend:", resendError);
+      delivery = "logged";
+    }
+
+    return NextResponse.json(
+      {
+        message:
+          delivery === "resend"
+            ? `${formatTitle(formData.formType)} delivered via Resend`
+            : `${formatTitle(formData.formType)} recorded (Resend unavailable)`,
+        delivery,
+        resendError: resendErrorDetails,
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('Error processing form submission:', error);
-    return NextResponse.json({ message: 'Error processing form submission', error }, { status: 500 });
+    console.error("Error processing form submission:", error);
+    return NextResponse.json(
+      { message: "Error processing form submission", error },
+      { status: 500 }
+    );
   }
 }

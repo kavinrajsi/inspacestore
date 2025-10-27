@@ -122,6 +122,8 @@ const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
 
     try {
       setLoading(true);
+      console.log("Submitting expert form:", formData);
+
       const response = await fetch("/api/sendEmail", {
         method: "POST",
         headers: {
@@ -130,12 +132,18 @@ const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
         body: JSON.stringify(formData),
       });
 
+      const result = await response.json().catch(() => null);
+
       if (response.ok) {
         setNotification({
           type: "success",
           message: "Form submitted successfully!",
         });
         setFormSubmitted(true);
+        console.log("Expert form delivered:", {
+          payload: formData,
+          delivery: result?.delivery ?? "unknown",
+        });
         setFormData({
           name: "",
           email: "",
@@ -147,6 +155,10 @@ const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
         setNotification({
           type: "error",
           message: "Failed to submit form. Please try again.",
+        });
+        console.error("Failed to deliver expert form:", {
+          status: response.status,
+          result,
         });
       }
     } catch (error) {

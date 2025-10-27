@@ -112,20 +112,24 @@ const RequestForm = () => {
 
     setLoading(true);
 
+    const payload = {
+      name,
+      phoneNumber,
+      formType: "footer" as const,
+    };
+
+    console.log("Footer form submitted:", payload);
+
     try {
       const response = await fetch('/api/sendEmail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name,
-          phoneNumber,
-          formType: 'footer'
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (response.ok) {
         setName("");
@@ -134,8 +138,16 @@ const RequestForm = () => {
           type: "success",
           message: "Form submitted successfully!",
         });
+        console.log("Footer form delivered:", {
+          payload,
+          delivery: result?.delivery ?? "unknown",
+        });
       } else {
         message.error("Failed to send your request. Please try again.");
+        console.error("Failed to deliver footer form:", {
+          status: response.status,
+          result,
+        });
         setNotification({
           type: "error",
           message: "Failed to submit form. Please try again.",
@@ -248,20 +260,24 @@ const MobileRequestForm = () => {
 
     setLoading(true);
 
+    const payload = {
+      name,
+      phoneNumber,
+      formType: "footer" as const,
+    };
+
+    console.log("Footer form submitted:", payload);
+
     try {
       const response = await fetch('/api/sendEmail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name,
-          phoneNumber,
-          formType: 'footer'
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const result = await response.json().catch(() => null);
 
       if (response.ok) {
         message.success("Your request has been sent successfully!");
@@ -271,8 +287,16 @@ const MobileRequestForm = () => {
           type: "success",
           message: "Form submitted successfully!",
         });
+        console.log("Footer form delivered:", {
+          payload,
+          delivery: result?.delivery ?? "unknown",
+        });
       } else {
         message.error("Failed to send your request. Please try again.");
+        console.error("Failed to deliver footer form:", {
+          status: response.status,
+          result,
+        });
         setNotification({
           type: "error",
           message: "Failed to submit form. Please try again.",
