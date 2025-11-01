@@ -6,7 +6,7 @@
     "root": false
   },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "NEXT_PUBLIC_ENV=local next dev --turbopack",
     "build": "next build",
     "start": "next start -p 3500",
     "lint": "next lint"
