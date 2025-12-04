@@ -439,7 +439,7 @@ const Footer = () => {
               {/* Contact Info */}
               <div className="mx-5">
                 <h3 className="font-bold mb-2">CONTACT US</h3>
-                <p>+91 9840861493</p>
+                <p>+91 9150001552</p>
                 <p>contact@inspacestore.in</p>
                 <p>No:16, K.K Street,Kasthuri Industrial Estate, Ayanambakkam,Chennai-600 095. Tamil Nadu. India.
                 </p>
@@ -580,7 +580,7 @@ const Footer = () => {
                         CONTACT US
                       </h2>
                       <ul className="space-y-2 text-black opacity-60">
-                        <li>+91 9840861493</li>
+                        <li>+91 9150001552</li>
                         <li>contact@inspacestore.in</li>
                         <li>
                           No:16, K.K Street,<br /> Kasthuri Industrial Estate, Ayanambakkam,

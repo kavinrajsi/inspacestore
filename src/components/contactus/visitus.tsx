@@ -79,7 +79,7 @@ const VisitUs = () => {
                 transition={{ duration: 0.6 }}
                 className="text-[#4A044E] text-sm"
               >
-                +91 9840861493
+                +91 9150001552
               </motion.p>
             </div>
           </div>
