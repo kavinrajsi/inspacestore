@@ -30,6 +30,9 @@ type InsightFormData = {
 
 type FormData = ContactFormData | FooterFormData | InsightFormData;
 
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
+const RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
+
 const RESEND_API_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_API_KEY = process.env.RESEND_API_KEY; // DO NOT default to bogus string
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
@@ -59,6 +62,30 @@ const sanitizePrivateKey = (value?: string) =>
 
 const serializeError = (err: unknown) =>
   err instanceof Error ? { message: err.message, stack: err.stack } : { message: String(err) };
+
+const verifyRecaptcha = async (token: string): Promise<{ success: boolean; score: number }> => {
+  if (!RECAPTCHA_SECRET_KEY) {
+    console.warn("RECAPTCHA_SECRET_KEY not set — skipping verification");
+    return { success: true, score: 1.0 };
+  }
+
+  try {
+    const response = await fetch(RECAPTCHA_VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        secret: RECAPTCHA_SECRET_KEY,
+        response: token,
+      }),
+    });
+
+    const data = await response.json();
+    return { success: data.success && (data.score ?? 0) >= 0.5, score: data.score ?? 0 };
+  } catch (error) {
+    console.error("reCAPTCHA verification error:", serializeError(error));
+    return { success: false, score: 0 };
+  }
+};
 
 const validateRequiredEnv = () => {
   if (!isLocalEnv && !RESEND_API_KEY) {
@@ -191,6 +218,25 @@ export async function POST(request: Request) {
 
     if (!formData || !formData.formType || !["contact", "footer", "insight"].includes(formData.formType)) {
       return NextResponse.json({ message: "Invalid or missing formType" }, { status: 400 });
+    }
+
+    // Verify reCAPTCHA token
+    const recaptchaToken = (formData as Record<string, unknown>).recaptchaToken as string | undefined;
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken);
+      if (!recaptchaResult.success) {
+        console.warn("reCAPTCHA verification failed:", { score: recaptchaResult.score });
+        return NextResponse.json(
+          { message: "reCAPTCHA verification failed. Please try again." },
+          { status: 403 }
+        );
+      }
+    } else if (!isLocalEnv && RECAPTCHA_SECRET_KEY) {
+      // In production with reCAPTCHA configured, reject submissions without a token
+      return NextResponse.json(
+        { message: "reCAPTCHA token is required" },
+        { status: 400 }
+      );
     }
 
     let fullName = "";

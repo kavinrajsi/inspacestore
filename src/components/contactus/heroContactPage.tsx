@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Navbar from "@/components/layout/navbar";
 import { LoadingOutlined } from "@ant-design/icons";
 import { NotificationState } from "../common/ExpertForm";
 import CustomNotification from "../common/CustomNotification";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 interface FormData {
   firstName: string;
@@ -28,6 +29,7 @@ interface MobileFormData {
 }
 
 const HeroContactPage = () => {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -150,13 +152,22 @@ const HeroContactPage = () => {
       return;
     }
 
+    let recaptchaToken = "";
+    if (executeRecaptcha) {
+      try {
+        recaptchaToken = await executeRecaptcha("contact_form");
+      } catch {
+        console.error("reCAPTCHA execution failed");
+      }
+    }
+
     try {
       const response = await fetch("/api/sendEmail", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, recaptchaToken }),
       });
 
       const result = await response.json().catch(() => null);

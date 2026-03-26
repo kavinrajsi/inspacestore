@@ -7,6 +7,7 @@ import { Button } from "antd";
 import CustomNotification from "./CustomNotification";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 interface TalkToDesignProps {
   backgroundImage: string;
@@ -28,6 +29,7 @@ interface FormData {
 }
 
 const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [isMobile, setIsMobile] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
   const [notification, setNotification] = useState<NotificationState | null>(null);
@@ -120,6 +122,15 @@ const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
       return;
     }
 
+    let recaptchaToken = "";
+    if (executeRecaptcha) {
+      try {
+        recaptchaToken = await executeRecaptcha("expert_form");
+      } catch {
+        console.error("reCAPTCHA execution failed");
+      }
+    }
+
     try {
       setLoading(true);
       console.log("Submitting expert form:", formData);
@@ -129,7 +140,7 @@ const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
 
       const result = await response.json().catch(() => null);
@@ -170,7 +181,7 @@ const TalkToDesign = ({ backgroundImage, staticWords }: TalkToDesignProps) => {
     } finally {
       setLoading(false);
     }
-  }, [formData, validateForm]);
+  }, [formData, validateForm, executeRecaptcha]);
 
   const resetForm = useCallback(() => {
     setFormSubmitted(false);

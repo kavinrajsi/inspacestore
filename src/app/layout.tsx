@@ -4,6 +4,7 @@ import "./globals.css";
 import { Poppins, Montserrat, Inter } from "next/font/google";
 import { CartProvider } from "@/components/products/CartContext";
 import { Toaster } from "sonner";
+import ReCaptchaProvider from "@/components/common/ReCaptchaProvider";
 
 
 export const metadata: Metadata = {
@@ -73,12 +74,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
-        <CartProvider>
-          <Toaster className="!top-28 right-5" position="top-right" richColors />
-          <RootLayoutWrapper>
-            {children}
-          </RootLayoutWrapper>
-        </CartProvider>
+        <ReCaptchaProvider>
+          <CartProvider>
+            <Toaster className="!top-28 right-5" position="top-right" richColors />
+            <RootLayoutWrapper>
+              {children}
+            </RootLayoutWrapper>
+          </CartProvider>
+        </ReCaptchaProvider>
       </body>
     </html>
   );

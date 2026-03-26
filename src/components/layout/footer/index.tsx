@@ -8,6 +8,7 @@ import { FaFacebookF, FaInstagram, FaYoutube } from "react-icons/fa";
 import { message } from "antd";
 import { NotificationState } from "@/components/common/ExpertForm";
 import CustomNotification from "@/components/common/CustomNotification";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 const Base = () => (
   <footer className="w-full py-4 px-5 flex justify-between items-center text-purple-900">
@@ -66,6 +67,7 @@ const validatePhoneNumber = (phoneNumber: string): string | null => {
 };
 
 const RequestForm = () => {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [name, setName] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -112,10 +114,20 @@ const RequestForm = () => {
 
     setLoading(true);
 
+    let recaptchaToken = "";
+    if (executeRecaptcha) {
+      try {
+        recaptchaToken = await executeRecaptcha("footer_form");
+      } catch {
+        console.error("reCAPTCHA execution failed");
+      }
+    }
+
     const payload = {
       name,
       phoneNumber,
       formType: "footer" as const,
+      recaptchaToken,
     };
 
     console.log("Footer form submitted:", payload);
@@ -214,6 +226,7 @@ const RequestForm = () => {
 };
 
 const MobileRequestForm = () => {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [name, setName] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -260,10 +273,20 @@ const MobileRequestForm = () => {
 
     setLoading(true);
 
+    let recaptchaToken = "";
+    if (executeRecaptcha) {
+      try {
+        recaptchaToken = await executeRecaptcha("footer_form");
+      } catch {
+        console.error("reCAPTCHA execution failed");
+      }
+    }
+
     const payload = {
       name,
       phoneNumber,
       formType: "footer" as const,
+      recaptchaToken,
     };
 
     console.log("Footer form submitted:", payload);
